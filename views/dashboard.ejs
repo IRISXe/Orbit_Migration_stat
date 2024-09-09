@@ -107,7 +107,7 @@
                     <% data1.forEach(item => { %>
                       <div>
                         <strong><%= item.ELEMENT || 'Unknown Element' %></strong>
-                        <div class="info-circle" id="<%= item.ELEMENT ? item.ELEMENT.replace(/\s+/g, '').toLowerCase() : 'unknown' %>">
+                        <div class="info-circle" id="pre<%= item.ELEMENT ? item.ELEMENT.replace(/\s+/g, '').toLowerCase() : 'unknown' %>">
                           <%= item.VALUE || '0' %>
                         </div>
                       </div>
@@ -125,7 +125,7 @@
             <h3>Current Migrated Data</h3>
             <!-- Header Info Circles -->
             <div class="header-info">
-                <% data1.forEach(item => { %>
+                <% data2.forEach(item => { %>
                     <div>
                       <strong><%= item.ELEMENT || 'Unknown Element' %></strong>
                       <div class="info-circle" id="<%= item.ELEMENT ? item.ELEMENT.replace(/\s+/g, '').toLowerCase() : 'unknown' %>">
@@ -180,18 +180,33 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+         
             const data = await response.json();
-            updateCircles(data);
-            updateCharts(data);
+           // const data = await response.json();
+            const { data1, data2 } = data;
+            // Assuming data1 and data2 are updated on the server
+            
+            updateCircles(data1,data2);
+            updateCharts(data2);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
 
     // Function to update the circle elements
-    function updateCircles(data) {
-        data.forEach(item => {
+    function updateCircles(data1,data2) {
+        data1.forEach(item => {
             const elementId = `pre${item.ELEMENT.replace(/\s+/g, '').toLowerCase()}`;
+            const circleElement = document.getElementById(elementId);
+            
+            if (circleElement) {
+                circleElement.textContent = item.VALUE;
+            } else {
+                console.warn(`Element with ID ${elementId} not found.`);
+            }
+        });
+        data2.forEach(item => {
+            const elementId = `${item.ELEMENT.replace(/\s+/g, '').toLowerCase()}`;
             const circleElement = document.getElementById(elementId);
             
             if (circleElement) {
@@ -352,10 +367,10 @@
     }
 
     // Call fetchData every 10 seconds
-   // setInterval(fetchData, 10000);
+   setInterval(fetchData, 10000);
 
     // Initial fetch when page loads
- //   fetchData();
+  fetchData();
 });
 
     </script>

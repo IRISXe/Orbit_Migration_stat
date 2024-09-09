@@ -1,56 +1,8 @@
+DECLARE
+*
+ERROR at line 1:
+ORA-01012: not logged on
+Process ID: 0
+Session ID: 0 Serial number: 0
 
-        {
-            "ROWSET": {
-                "ROW": [
-                    
-                        {
-                            
-                                "NAME": "Customer Account"
-
-,
-                                "CNT": "1200"
-                                
-                        }
-                        ,
-                        {
-                            
-
-"NAME": "Billing Account"
-                                ,
-                                "CNT": "1222"
-                                
-                        }
-                        ,
-
-{
-                            
-                                "NAME": "Contact"
-                                ,
-                                "CNT": "1243"
-                                
-
-}
-                        ,
-                        {
-                            
-                                "NAME": "Address"
-                                ,
-
-"CNT": "1000"
-                                
-                        }
-                        ,
-                        {
-                            
-                                "NAME":
-"Asset"
-                                ,
-                                "CNT": "123"
-                                
-                        }
-                        
-                ]
-
-}
-        }
 

@@ -1,8 +1,6 @@
 const express = require('express');
-const getOracleConnection = require('db'); // Ensure the path is correct
-const path = require('path');
 const fs = require('fs');
-const oracledb = require('oracledb');
+const path = require('path');
 const exec = require('child_process').exec;
 require('dotenv').config();
 
@@ -14,36 +12,23 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const readSqlFile = (fileName) => {
-  const filePath = path.join(__dirname, 'batchScript', fileName);
-  console.log(filePath);
-  return fs.readFileSync(filePath, 'utf8');
-};
-
-// Sleep function to pause execution for a given number of milliseconds
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Example usage: sleep for 30 seconds (30000 milliseconds)
-
-const dbUser = process.env.DB_USER;
-const dbPassword = process.env.DB_PASSWORD;
-const dbConnectString = process.env.DB_CONNECT_STRING;
-console.log(`${dbUser} ${dbPassword} ${dbConnectString}`);
 
 // Define the working directory where the batch file is located
 const workingDirectory = path.join(__dirname, 'batchScript');
 
 // Define the command to run the batch file
-const command = `cmd /c run-sql.bat ${dbUser} ${dbPassword} ${dbConnectString} > commandOuttext.txt 2> commnderror.txt`;
+const command = "cmd /c run-sql.bat ${dbUser} ${dbPassword} ${dbConnectString}" ; //> commandOuttext.txt 2> commnderror.txt;
 
 // Execute the command in the specified working directory
+
+/*
 exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
   if (error) {
-    console.error(`exec error: ${error}`);
+    console.error(exec error: ${error});
     return;
   }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
+  console.log(stdout: ${stdout});
+  console.error(stderr: ${stderr});
   (async () => {
     console.log('Starting sleep 30 seconds...');
     await sleep(30000); // 30 seconds
@@ -51,41 +36,98 @@ exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
   })();
   
 });
+*/
+// Sleep function to pause execution for a given number of milliseconds
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Route to fetch data and render the chart
-app.get('/', async (req, res) => {
+function executeCommandInterval(command, workingDirectory) {
+  // This function executes your command
+  const executeCommand = () => {
+    exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        return;
+      }
+      (async () => {
+        console.log('Starting sleep 30 seconds...');
+        await sleep(30000); // 30 seconds
+        console.log('Sleep finished');
+      })();
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
+    });
+  };
+
+
+  // Initial execution
+  executeCommand();
+
+
+  // Set interval to repeat every 30 seconds (30000 milliseconds)
+  setInterval(() => {
+    console.log('Starting execution after 90 seconds...');
+    executeCommand();
+  }, 90000);
+}
+
+executeCommandInterval(command, workingDirectory);
+const readSqlFile = (fileName) => {
+  const filePath = path.join(__dirname, 'batchScript', fileName);
+  return fs.readFileSync(filePath, 'utf8');
+};
+
+// Fetch and cache data
+let data1 = [];
+let data2 = [];
+
+const fetchData = async () => {
   try {
-    // Read and parse the JSON file
+    // Read and parse the JSON files
     const jsonStringInp = readSqlFile('data1.json');
     const cleanedString = jsonStringInp.replace(/^\s+/, '').trim();
-
     const jsonString = cleanedString.replace(/_x0020_/g, ' ');
-    console.log (jsonString);
     const jsonData = JSON.parse(jsonString);
-console.log (jsonData);
-    if (!jsonData) {
-      res.status(500).send('Error parsing JSON');
-      return;
-    }
 
-    //let data1 = [];
-    let data1 = [];
-    if (jsonData && jsonData.ROWSET && jsonData.ROWSET.ROW) {
-      const rows = jsonData.ROWSET.ROW;
-      if (Array.isArray(rows)) {
-        data1 = rows.map(row => ({
-          ELEMENT: row['NAME'], // Use 'NAME' from your JSON structure
-          VALUE: row['CNT']    // Use 'CNT' from your JSON structure
-        }));
-      }
-    }
+    const rows = jsonData.ROWSET.ROW;
+    data1 = rows.map(row => {
+      const values = Object.values(row); // Get all values from the row object
+      return {
+        ELEMENT: values[0], // First value will correspond to 'NAME'
+        VALUE: values[1]    // Second value will correspond to 'CNT'
+      };
+    });
 
+    const jsonStringInp2 = readSqlFile('data2.json');
+    const cleanedString2 = jsonStringInp2.replace(/^\s+/, '').trim();
+    const jsonString2 = cleanedString2.replace(/_x0020_/g, ' ');
+    const jsonData2 = JSON.parse(jsonString2);
 
+    const rows2 = jsonData2.ROWSET.ROW;
+    data2 = rows2.map(row => {
+      const values = Object.values(row); // Get all values from the row object
+      return {
+        ELEMENT: values[0], // First value will correspond to 'NAME'
+        VALUE: values[1]    // Second value will correspond to 'CNT'
+      };
+    });
 
-    console.log("Data:", data1);
+    console.log('Data refreshed');
+  } catch (err) {
+    console.error('Error fetching data:', err);
+  }
+};
 
-    // Render the view with the JSON data
-    res.render('dashboard', { data1 });
+// Fetch data initially
+fetchData();
+
+// Refresh data every 90 seconds (90000 milliseconds)
+setInterval(fetchData, 90000);
+
+// Route to fetch data and render the view
+app.get('/', async (req, res) => {
+  try {
+    // Render the view with the cached data
+    res.render('dashboard', { data1, data2 });
   } catch (err) {
     console.error('Error:', err);
     res.status(500).send('Server Error');
@@ -93,9 +135,9 @@ console.log (jsonData);
 });
 
 // Route to fetch data as JSON
-app.get('/data-json', async (req, res) => {
-    // do nothing
-    });
+app.get('/data-json', (req, res) => {
+  res.json( { data1, data2 });
+});
 
 app.listen(3001, () => {
   console.log('Server is running on http://localhost:3001');

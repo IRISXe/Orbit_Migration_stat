@@ -9,7 +9,7 @@ I am loading the data.
 				"NAME": "Customer Account"
 
 ,
-				"CNT": "1200"
+				"CNT": "3972"
 				
 			}
 			,
@@ -18,7 +18,7 @@ I am loading the data.
 
 "NAME": "Billing Account"
 				,
-				"CNT": "1222"
+				"CNT": "5536"
 				
 			}
 			,
@@ -27,7 +27,7 @@ I am loading the data.
 			    
 				"NAME": "Contact"
 				,
-				"CNT": "1243"
+				"CNT": "1203"
 				
 
 }
@@ -37,7 +37,7 @@ I am loading the data.
 				"NAME": "Address"
 				,
 
-"CNT": "1000"
+"CNT": "1324"
 				
 			}
 			,
@@ -46,7 +46,7 @@ I am loading the data.
 				"NAME":
 "Asset"
 				,
-				"CNT": "123"
+				"CNT": "9388"
 				
 			}
 			
@@ -55,59 +55,14 @@ I am loading the data.
 }
 	}
 
+  DECLARE
+*
+ERROR at line 1:
+ORA-19202: Error occurred in XML processing
+ORA-00923: FROM keyword not found where expected
+ORA-06512: at "SYS.DBMS_XMLGEN", line 7
+ORA-06512: at "SYS.DBMS_XMLGEN", line 147
+ORA-06512: at line 49
 
-	{
-	    "ROWSET": {
-		"ROW": [
-		    
-			{
-			    
-				"NAME": "Customer Account"
 
-,
-				"CNT": "1200"
-				
-			}
-			,
-			{
-			    
-
-"NAME": "Billing Account"
-				,
-				"CNT": "1222"
-				
-			}
-			,
-
-{
-			    
-				"NAME": "Contact"
-				,
-				"CNT": "1243"
-				
-
-}
-			,
-			{
-			    
-				"NAME": "Address"
-				,
-
-"CNT": "1000"
-				
-			}
-			,
-			{
-			    
-				"NAME":
-"Asset"
-				,
-				"CNT": "123"
-				
-			}
-			
-		]
-
-}
-	}
-
+Terminate batch job (Y/N)? 
