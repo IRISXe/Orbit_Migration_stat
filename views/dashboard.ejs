@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Migration Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    
     <link rel="stylesheet" href="/css/style.css">
 
     <style>
@@ -69,15 +73,21 @@
         }
 
         .chart-container {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #f4f4f4;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-        }
+    flex: 1;
+    min-width: 400px;  /* Increase minimum width */
+    max-width: 600px;  /* Set a larger maximum width */
+    height: 400px;     /* Ensure consistent height */
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f4f4f4;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+canvas {
+    width: 100% !important;  /* Ensure canvas takes up the entire container width */
+    height: 100% !important; /* Ensure canvas takes up the entire container height */
+}
 
         a {
             display: block;
@@ -180,13 +190,11 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-         
             const data = await response.json();
-           // const data = await response.json();
             const { data1, data2 } = data;
-            // Assuming data1 and data2 are updated on the server
             
-            updateCircles(data1,data2);
+            // Update circles and charts
+            updateCircles(data1, data2);
             updateCharts(data2);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -194,103 +202,92 @@
     }
 
     // Function to update the circle elements
-    function updateCircles(data1,data2) {
+    function updateCircles(data1, data2) {
         data1.forEach(item => {
             const elementId = `pre${item.ELEMENT.replace(/\s+/g, '').toLowerCase()}`;
             const circleElement = document.getElementById(elementId);
-            
             if (circleElement) {
                 circleElement.textContent = item.VALUE;
-            } else {
-                console.warn(`Element with ID ${elementId} not found.`);
             }
         });
         data2.forEach(item => {
             const elementId = `${item.ELEMENT.replace(/\s+/g, '').toLowerCase()}`;
             const circleElement = document.getElementById(elementId);
-            
             if (circleElement) {
                 circleElement.textContent = item.VALUE;
-            } else {
-                console.warn(`Element with ID ${elementId} not found.`);
             }
         });
     }
 
     // Function to update the charts
-    function updateCharts(data) {
-        // Sample data for demonstration, replace with actual data from the server
-        const chartData = {
-            migrationByYear: [
-                { YEAR: '2019', MIGRATION_COUNT: 500 },
-                { YEAR: '2020', MIGRATION_COUNT: 600 },
-                { YEAR: '2021', MIGRATION_COUNT: 700 },
-                { YEAR: '2022', MIGRATION_COUNT: 800 },
-                { YEAR: '2023', MIGRATION_COUNT: 900 }
-            ],
-            migrationByRegion: [
-                { REGION: 'North America', MIGRATION_COUNT: 300 },
-                { REGION: 'Europe', MIGRATION_COUNT: 400 },
-                { REGION: 'Asia', MIGRATION_COUNT: 500 },
-                { REGION: 'Africa', MIGRATION_COUNT: 200 },
-                { REGION: 'South America', MIGRATION_COUNT: 150 }
-            ],
-            genderDistribution: [
-                { GENDER: 'Male', COUNT: 1200 },
-                { GENDER: 'Female', COUNT: 1300 }
-            ],
-            ageGroupDistribution: [
-                { AGE_GROUP: '18-24', COUNT: 500 },
-                { AGE_GROUP: '25-34', COUNT: 600 },
-                { AGE_GROUP: '35-44', COUNT: 450 },
-                { AGE_GROUP: '45-54', COUNT: 350 },
-                { AGE_GROUP: '55+', COUNT: 300 }
-            ],
-            countriesOfOrigin: [
-                { COUNTRY: 'USA', COUNT: 400 },
-                { COUNTRY: 'Canada', COUNT: 300 },
-                { COUNTRY: 'Mexico', COUNT: 250 },
-                { COUNTRY: 'Brazil', COUNT: 200 },
-                { COUNTRY: 'Argentina', COUNT: 150 }
-            ]
-        };
+    function updateCharts(data2) {
+        const Chartlabels2 = data2.map(item => item.ELEMENT);
+        const dataChart2 = data2.map(item => parseInt(item.VALUE, 10));
 
-        // Migration by Year Line Chart
-        if (migrationByYearChart) migrationByYearChart.destroy();
-        const migrationByYearData = chartData.migrationByYear;
-        const years = migrationByYearData.map(row => row.YEAR);
-        const migrationCounts = migrationByYearData.map(row => row.MIGRATION_COUNT);
-        migrationByYearChart = new Chart(document.getElementById('migrationByYear').getContext('2d'), {
-            type: 'line',
+        const labels2 = data2.map(item => item.ELEMENT);
+        const values2 = data2.map(item => parseInt(item.VALUE));
+
+        // Destroy existing charts before re-initializing them
+        if (migrationByYearChart) {
+            migrationByYearChart.destroy();
+        }
+
+        // Create datasets dynamically with different colors
+        const colors = [
+            'rgba(255, 99, 132, 0.5)', // Red
+            'rgba(54, 162, 235, 0.5)', // Blue
+            'rgba(255, 206, 86, 0.5)', // Yellow
+            'rgba(75, 192, 192, 0.5)', // Green
+            'rgba(153, 102, 255, 0.5)'  // Purple
+        ];
+
+        const datasets = labels2.map((label, index) => ({
+            label: label,
+            data: [values2[index]],
+            backgroundColor: colors[index],
+            borderColor: colors[index].replace('0.5', '1'),
+            borderWidth: 1
+        }));
+
+        const ctx = document.getElementById('migrationByYear').getContext('2d');
+        migrationByYearChart = new Chart(ctx, {
+            type: 'bar', // Horizontal bar chart
             data: {
-                labels: years,
-                datasets: [{
-                    label: 'Migration by Year',
-                    data: migrationCounts,
-                    fill: false,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    tension: 0.1
-                }]
+                labels: labels2, // Single category axis
+                datasets: datasets // Multiple datasets for different colors
             },
             options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
+               
+    indexAxis: 'y',
+    // Elements options apply to all of the options unless overridden in a dataset
+    // In this case, we are setting the border of each horizontal bar to be 2px wide
+    elements: {
+      bar: {
+        borderWidth: 2,
+      }
+    },
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: 'Chart.js Horizontal Bar Chart'
+      }
+    }
+  },
         });
 
-        // Migration by Region Chart
+        // Destroy and reinitialize other charts similarly
         if (migrationByRegionChart) migrationByRegionChart.destroy();
-        const migrationByRegionData = chartData.migrationByRegion;
-        const regions = migrationByRegionData.map(row => row.REGION);
-        const regionMigrationCounts = migrationByRegionData.map(row => row.MIGRATION_COUNT);
         migrationByRegionChart = new Chart(document.getElementById('migrationByRegion').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: regions,
+                labels: Chartlabels2,
                 datasets: [{
                     label: 'Migration by Region',
-                    data: regionMigrationCounts,
+                    data: dataChart2,
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
@@ -303,18 +300,14 @@
             }
         });
 
-        // Gender Distribution Chart
         if (genderDistributionChart) genderDistributionChart.destroy();
-        const genderDistributionData = chartData.genderDistribution;
-        const genders = genderDistributionData.map(row => row.GENDER);
-        const genderCounts = genderDistributionData.map(row => row.COUNT);
         genderDistributionChart = new Chart(document.getElementById('genderDistribution').getContext('2d'), {
             type: 'pie',
             data: {
-                labels: genders,
+                labels: Chartlabels2,
                 datasets: [{
                     label: 'Gender Distribution',
-                    data: genderCounts,
+                    data: dataChart2,
                     backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
                     borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
                     borderWidth: 1
@@ -322,18 +315,14 @@
             }
         });
 
-        // Age Group Distribution Chart
         if (ageGroupDistributionChart) ageGroupDistributionChart.destroy();
-        const ageGroupDistributionData = chartData.ageGroupDistribution;
-        const ageGroups = ageGroupDistributionData.map(row => row.AGE_GROUP);
-        const ageGroupCounts = ageGroupDistributionData.map(row => row.COUNT);
         ageGroupDistributionChart = new Chart(document.getElementById('ageGroupDistribution').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ageGroups,
+                labels: Chartlabels2,
                 datasets: [{
-                    label: 'Age Group Distribution',
-                    data: ageGroupCounts,
+                    label: 'Migrated Data',
+                    data: dataChart2,
                     backgroundColor: 'rgba(255, 206, 86, 0.2)',
                     borderColor: 'rgba(255, 206, 86, 1)',
                     borderWidth: 1
@@ -346,31 +335,38 @@
             }
         });
 
-        // Top 5 Countries of Origin Chart
         if (countriesOfOriginChart) countriesOfOriginChart.destroy();
-        const countriesOfOriginData = chartData.countriesOfOrigin;
-        const countries = countriesOfOriginData.map(row => row.COUNTRY);
-        const countryCounts = countriesOfOriginData.map(row => row.COUNT);
         countriesOfOriginChart = new Chart(document.getElementById('countriesOfOrigin').getContext('2d'), {
             type: 'pie',
             data: {
-                labels: countries,
+                labels: Chartlabels2,
                 datasets: [{
                     label: 'Top 5 Countries of Origin',
-                    data: countryCounts,
-                    backgroundColor: ['rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
-                    borderColor: ['rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)', 'rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                    data: dataChart2,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
                     borderWidth: 1
                 }]
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
-    // Call fetchData every 10 seconds
-   setInterval(fetchData, 10000);
-
-    // Initial fetch when page loads
-  fetchData();
+    // Fetch data every 10 seconds
+    fetchData();
+    setInterval(fetchData, 10000);
 });
 
     </script>

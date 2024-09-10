@@ -63,7 +63,7 @@ function executeCommandInterval(command, workingDirectory) {
   executeCommand();
 
 
-  // Set interval to repeat every 30 seconds (30000 milliseconds)
+  // Set interval to repeat every 90 seconds (90000 milliseconds)
   setInterval(() => {
     console.log('Starting execution after 90 seconds...');
     executeCommand();
